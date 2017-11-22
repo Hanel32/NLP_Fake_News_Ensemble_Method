@@ -70,11 +70,20 @@ class Perceptron:
          y_i is positive or negative depending on the document class. 1 for pos, -1 for neg.
          x_i is the individual feature
     """
+    '''
+    TODOTODOTODO!!!
+    '''
     klass_int = -1
     if(klass == 'pos'):
-        klass_int = 1
-    occurrence = np.zeros(self.vocab_length)
+        klass_int  = 1
     
+    #Either true/false based on occurrence
+    #IF NEED TODO: Translate into frequency model vs binary.
+    occurrence     = np.zeros(self.vocab_length)
+    occurrence_bi  = np.zeros(self.vocab_length * 2)
+    occurrence_tri = np.zeros(self.vocab_length * 3) 
+    
+    #Unigram perceptron training:
     for i in range(0, iterations):
         sum_weights = 0.
         for w in set(words):
@@ -86,8 +95,34 @@ class Perceptron:
             occur       = occurrence[int(self.words[w])]
             if np.sign(sum_weights * occur) != klass_int:
                 self.weights[int(self.words[w])] += (klass_int - np.sign(sum_weights * occur)) * occur
-    # Write code here
-
+                
+    #Bigram perceptron training:
+    #TODO:
+    for i in range(0, iterations):
+        sum_weights = 0.
+        for w in set('''bigrams'''):
+            w = w.lower()
+            sum_weights += self.weights[int(self.words[w])]
+            occurrence_bi[int(self.words[w])] += 1
+        #print 'The sum of weights for doc: ', doc, ' is: ', sum_weights
+        for w in set(words):
+            occur       = occurrence[int(self.words[w])]
+            if np.sign(sum_weights * occur) != klass_int:
+                self.weights[int(self.words[w])] += (klass_int - np.sign(sum_weights * occur)) * occur
+                
+    #Trigram perceptron training:
+    #TODO:
+    for i in range(0, iterations):
+        sum_weights = 0.
+        for w in set('''trigrams'''):
+            w = w.lower()
+            sum_weights += self.weights[int(self.words[w])]
+            occurrence_tri[int(self.words[w])] += 1
+        #print 'The sum of weights for doc: ', doc, ' is: ', sum_weights
+        for w in set(words):
+            occur       = occurrence[int(self.words[w])]
+            if np.sign(sum_weights * occur) != klass_int:
+                self.weights[int(self.words[w])] += (klass_int - np.sign(sum_weights * occur)) * occur
     pass
   
   def train(self, split, iterations):
