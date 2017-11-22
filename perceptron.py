@@ -30,6 +30,8 @@ class Perceptron:
     self.count_docs   = 0   #Count of total documents; just an iterator
     self.bag_of_words = []  #All word occurrences for all documents
     self.weights      = []  #Calculated feature weights
+    self.weights_bi   = []  #Calculated Bigram weights
+    self.weights_tri  = []  #Calculated Trigram weights
 
   #############################################################################
   # TODO TODO TODO TODO TODO 
@@ -111,10 +113,10 @@ class Perceptron:
                   self.words[w] = curr_word
                   curr_word += 1
       self.vocab_length = len(self.words.keys())
-      print 'The vocab length is: %d' % self.vocab_length + '\n'
       self.bag_of_words = np.zeros(self.vocab_length)
       self.weights      = np.zeros(self.vocab_length)
-      
+      self.weights_bi   = np.zeros(self.vocab_length * 2);
+      self.weights_tri  = np.zeros(self.vocab_length * 3);
       ex_doc = 0
 
       for example in split.train:
@@ -157,11 +159,13 @@ class Perceptron:
       example = self.Example()
       example.words = self.readFile('%s/pos/%s' % (trainDir, fileName))
       example.klass = 'pos'
+      example.words = [word for word in example.words if word not in stopwords.words('english')]
       split.train.append(example)
     for fileName in negTrainFileNames:
       example = self.Example()
       example.words = self.readFile('%s/neg/%s' % (trainDir, fileName))
       example.klass = 'neg'
+      example.words = [word for word in example.words if word not in stopwords.words('english')]
       split.train.append(example)
     return split
 
@@ -177,6 +181,7 @@ class Perceptron:
       for fileName in posTrainFileNames:
         example = self.Example()
         example.words = self.readFile('%s/pos/%s' % (trainDir, fileName))
+        example.words = [word for word in example.words if word not in stopwords.words('english')]
         example.klass = 'pos'
         if fileName[2] == str(fold):
           split.test.append(example)
@@ -185,6 +190,7 @@ class Perceptron:
       for fileName in negTrainFileNames:
         example = self.Example()
         example.words = self.readFile('%s/neg/%s' % (trainDir, fileName))
+        example.words = [word for word in example.words if word not in stopwords.words('english')]
         example.klass = 'neg'
         if fileName[2] == str(fold):
           split.test.append(example)
