@@ -8,6 +8,7 @@ Things to do:
   -Needs:
     - Own bag of words (bi/tri)
     - Own weights      (bi/tri)
+    - Own occurrence identities (occurrence set)
   -Issue:
     - Currently, I am scoring for the set[words]. Of course, I guess this could translate to the set[bigrams] set[trigrams].
 
