@@ -1,0 +1,15 @@
+TODOTODOTODO:
+
+Things to do:
+- Transfer pos/neg in the perceptron to being real/fake.
+  - To do this, need to put real and fake news in separate folders akin to pos/neg and change file path
+  
+  
+Things done:
+- Moved removal of stopwords to when the trainsplits are being made. It's being put into four different locations;
+  would probably suffice to simply move it to one of the two trainsplit functions, but which?
+
+- Added weight lists for bigrams and trigrams
+  - Note: There will be 2x as many bigrams as unigrams, and 3x as many trigrams.
+          It's my hope that removing stopwords before training will allow for a much closer fit/smaller data.
+- Added size initialization for bigram and trigram vectors
