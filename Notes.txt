@@ -3,6 +3,15 @@ TODOTODOTODO:
 Things to do:
 - Transfer pos/neg in the perceptron to being real/fake.
   - To do this, need to put real and fake news in separate folders akin to pos/neg and change file path
+- Figure out how to split the currently parsed document into bigrams/trigrams for the two secondary perceptrons.  
+- Translate the unigram perceptron into the bigram and trigram perceptron
+  -Needs:
+    - Own bag of words (bi/tri)
+    - Own weights      (bi/tri)
+  -Issue:
+    - Currently, I am scoring for the set[words]. Of course, I guess this could translate to the set[bigrams] set[trigrams].
+
+------------------------------------------------------
   
   
 Things done:
