@@ -164,86 +164,68 @@ class Maxent:
   #############################################################################
   
   
-  def readFile(self, fileName):
-    """
-     * Code for reading a file.  you probably don't want to modify anything here, 
-     * unless you don't like the way we segment files.
-    """
-    contents = []
-    f = open(fileName)
-    for line in f:
-      contents.append(line)
-    f.close()
-    result = self.segmentWords('\n'.join(contents)) 
-    return result
-
-  
-  def segmentWords(self, s):
-    """
-     * Splits lines on whitespace for file reading
-    """
-    return s.split()
-
-  
-  def trainSplit(self, trainDir):
-    """Takes in a trainDir, returns one TrainSplit with train set."""
+    def trainSplit(self, trainDir):
     split = self.TrainSplit()
-    posTrainFileNames = os.listdir('%s/pos/' % trainDir)
-    negTrainFileNames = os.listdir('%s/neg/' % trainDir)
-    for fileName in posTrainFileNames:
-      example = self.Example()
-      example.words = self.readFile('%s/pos/%s' % (trainDir, fileName))
-      example.klass = 'pos'
-      split.train.append(example)
-    for fileName in negTrainFileNames:
-      example = self.Example()
-      example.words = self.readFile('%s/neg/%s' % (trainDir, fileName))
-      example.klass = 'neg'
-      split.train.append(example)
+    with open(trainDir) as fileName:
+          reader = pd.read_csv(fileName)
+          for index,row in reader.iterrows():
+              content  = row['body']
+              polarity = int(row['fakeness'])
+              example = self.Example()
+              if polarity == 0:
+                  example.words = content
+                  example.klass = polarity
+                  split.train.append(example)
+              if polarity == 1:
+                  example.words = content
+                  example.klass = polarity
+                  split.train.append(example)
     return split
 
-
   def crossValidationSplits(self, trainDir):
-    """Returns a lsit of TrainSplits corresponding to the cross validation splits."""
-    splits = [] 
-    posTrainFileNames = os.listdir('%s/pos/' % trainDir)
-    negTrainFileNames = os.listdir('%s/neg/' % trainDir)
-    #for fileName in trainFileNames:
+    splits   = []
+    content  = str("")
+    polarity = 0
+    
     for fold in range(0, self.numFolds):
-      split = self.TrainSplit()
-      for fileName in posTrainFileNames:
-        example = self.Example()
-        example.words = self.readFile('%s/pos/%s' % (trainDir, fileName))
-        example.klass = 'pos'
-        if fileName[2] == str(fold):
-          split.test.append(example)
-        else:
-          split.train.append(example)
-      for fileName in negTrainFileNames:
-        example = self.Example()
-        example.words = self.readFile('%s/neg/%s' % (trainDir, fileName))
-        example.klass = 'neg'
-        if fileName[2] == str(fold):
-          split.test.append(example)
-        else:
-          split.train.append(example)
-      splits.append(split)
+        split = self.TrainSplit()
+        count = 0
+        with open(trainDir) as fileName:
+            reader = pd.read_csv(fileName).fillna(value = "")
+            for index,row in reader.iterrows():
+                content  = row['body']
+                polarity = int(row['fakeness'])
+                hashing  = count
+                count    = count + 1
+                example = self.Example()
+                example.words = content.split()
+                example.klass = polarity
+                if hashing != "hash" and hashing % 10 == fold:
+                    split.test.append(example)
+                else:
+                    split.train.append(example)
+        splits.append(split)
     return splits
-  
+'''
+Notes:
+    Reads rows in a CSV file as a dict in order to create test splits.
+    Prepares data to be sent to the perceptron to test validation of
+    feature engineering and perceptron handling.
+'''
 
 def test10Fold(args):
-  pt = Maxent()
+  pt         = Perceptron()
+  splitName  = "Word_Data"
+  splitCount = 0
   
+  iterations = int(args[1])
   splits = pt.crossValidationSplits(args[0])
-  epsilon = float(args[1])
-  eta = float(args[2])
-  lambdaa = float(args[3])
   avgAccuracy = 0.0
   fold = 0
   for split in splits:
-    classifier = Maxent()
+    classifier = Perceptron()
     accuracy = 0.0
-    classifier.train(split, epsilon, eta, lambdaa)
+    classifier.train(split,iterations)
   
     for example in split.test:
       words = example.words
@@ -255,10 +237,23 @@ def test10Fold(args):
     avgAccuracy += accuracy
     print '[INFO]\tFold %d Accuracy: %f' % (fold, accuracy) 
     fold += 1
+    '''
+    TODO: Beyond here, for every split, create a csv holding weights/words across the corpus
+    '''
+    fileName = splitName + str(splitCount) + ".csv"
+    with open(fileName, 'w') as csvfile:
+        data    = ['word', 'weight'] 
+        archive = csv.DictWriter(csvfile, fieldnames = data)
+        archive.writeheader()
+        for w in set(classifier.words):
+            temp_word   = w
+            temp_weight = classifier.weights[int(classifier.words[w])]
+            archive.writerow({'word' : temp_word, 'weight' : temp_weight})
+        csvfile.close()
+    splitCount += 1
   avgAccuracy = avgAccuracy / fold
   print '[INFO]\tAccuracy: %f' % avgAccuracy
-    
-    
+  
 def classifyDir(trainDir, testDir, eps, et, lamb):
   classifier = Maxent()
   trainSplit = classifier.trainSplit(trainDir)
