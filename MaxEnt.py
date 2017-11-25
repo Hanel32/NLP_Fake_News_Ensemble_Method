@@ -49,20 +49,19 @@ class Maxent:
     """ TODO
       'words' is a list of words to classify. Return 'pos' or 'neg' classification.
     """
-    words = [word for word in words if word not in stopwords.words('english')]
+    #words = [word for word in words if word not in stopwords.words('english')]
 
     weight = 0.
-    for w in list(words):
-        w = w.lower()
+    for w in set(words):
         if w in self.words:
             weight = weight + float(self.weights[int(self.words[w])])
 
     weight = 1 / (1 + np.exp(-weight))
     #print 'The calculated weight is: ', weight
     if weight > .5:
-        return 'pos'
+        return int(0)
     else:
-        return 'neg' 
+        return int(1) 
 
   def addExample(self, klass, words, doc, eta, lambdaa):
     """
@@ -80,10 +79,9 @@ class Maxent:
     
     
     klass_int = 0
-    if(klass == 'pos'):
+    if(klass == 0):
         klass_int = 1
-    for w in words:
-        w = w.lower()
+    for w in set(words):
         self.bag_of_words += 1                  #Counts for all words for empirical probability.
         occurrence[int(self.words[w])] = 1
     """
@@ -153,8 +151,9 @@ class Maxent:
       ex_doc = 0
       for example in split.train:
           words = example.words
-          self.addExample(example.klass, words, ex_doc, eta, lambdaa)
-          ex_doc += 1
+          if(len(words) > 0):
+            self.addExample(example.klass, words, ex_doc, eta, lambdaa)
+            ex_doc += 1
       
       #print 'Weights are now: '
       #for item in self.weights:
@@ -165,7 +164,7 @@ class Maxent:
   #############################################################################
   
   
-    def trainSplit(self, trainDir):
+  def trainSplit(self, trainDir):
     split = self.TrainSplit()
     with open(trainDir) as fileName:
           reader = pd.read_csv(fileName)
@@ -215,23 +214,25 @@ Notes:
 '''
 
 def test10Fold(args):
-  pt         = Perceptron()
+  pt         = Maxent()
   splitName  = "Word_Data"
   splitCount = 0
   
-  iterations = int(args[1])
   splits = pt.crossValidationSplits(args[0])
+  epsilon = float(args[1])
+  eta = float(args[2])
+  lambdaa = float(args[3])
   avgAccuracy = 0.0
   fold = 0
   for split in splits:
-    classifier = Perceptron()
+    classifier = Maxent()
     accuracy = 0.0
-    classifier.train(split,iterations)
+    classifier.train(split, epsilon, eta, lambdaa)
   
     for example in split.test:
       words = example.words
       guess = classifier.classify(words)
-      if example.klass == guess:
+      if int(example.klass) == int(guess):
         accuracy += 1.0
 
     accuracy = accuracy / len(split.test)
