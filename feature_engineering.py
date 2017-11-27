@@ -258,6 +258,8 @@ def hand_features(headline, body):
     print("length:", len(X))
     return X
 
+    #Pseudo perceptron classifier
+    #author: Carson Hanel
     def score(headline, body):
         # Utilizes learned scores from a logistic regression perceptron run on the corpus.
         # The idea is to make the learning quicker by doing learning separately, and simply
@@ -293,6 +295,15 @@ def hand_features(headline, body):
          else:
              return 0
          return 0
+                 
+     def unaries(headline, body):
+         # Parses the current document, and finds the frequencies of unaries in the bag of words.
+         #
+         #TODO:
+         #  Important note: unless the BoW and weights are generated within Modelling.py, this will be very slow.
+         #                  For a better design, I'll be moving the building of the BoW and the weight gathering 
+         #                  from the CSV into the other file. This way, we're not loading 130k words/weights into
+         #                  the RAM for every file to be scored; it'll be able to be passed as a parameter.
                            
                           
                     
