@@ -265,9 +265,10 @@ def hand_features(headline, body):
         #
         #TODO:
         #  Utilize the maxent classifier and perceptron both in order to generate weights.
-        curr    = 0
-        words   = {}
-        weights = []
+        curr       = 0
+        words      = {}
+        weights    = []
+        doc_weight = 0
         #Weight extracting sequence
         with open("Word_Data0.csv") as fileName:
             for row in reader.iterrows():
@@ -281,6 +282,18 @@ def hand_features(headline, body):
                     print "Invalid CSV format!"
             fileName.close()
          #Scoring sequence
-                
+         for w in set(body):
+            w = w.lower()
+            if w in words:
+                doc_weight += float(weights[int(words[w])])
+         doc_weight = 1 / (1 + np.exp(-(doc_weight))               
+         if weight > 0:
+             return 1
+         else:
+             return 0
+         return 0
+                           
+                          
+                    
         
 
