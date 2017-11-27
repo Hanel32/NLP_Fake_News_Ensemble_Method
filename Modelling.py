@@ -115,10 +115,6 @@ for index, row in df.iterrows():
     features=generate_features(row['headline'],row['body'])
     all_features.append(features)
     
-#Data gathering function
-#Author: Carson Hanel
-def gatherData():
-    
 np.save("My_features",all_features)
 file=open("My_features.txt","w")
 file.write(str(all_features))
