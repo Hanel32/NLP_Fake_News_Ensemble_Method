@@ -258,3 +258,29 @@ def hand_features(headline, body):
     print("length:", len(X))
     return X
 
+    def score(headline, body):
+        # Utilizes learned scores from a logistic regression perceptron run on the corpus.
+        # The idea is to make the learning quicker by doing learning separately, and simply
+        # the learned weights rather than learning and then scoring.
+        #
+        #TODO:
+        #  Utilize the maxent classifier and perceptron both in order to generate weights.
+        curr    = 0
+        words   = {}
+        weights = []
+        #Weight extracting sequence
+        with open("Word_Data0.csv") as fileName:
+            for row in reader.iterrows():
+                reader = pd.read_csv(fileName).fillna(value = "")
+                word   = row['word']
+                weight = row['weight']
+                if word not in words.keys():
+                    words[word]   = curr
+                    weights[curr] = weight
+                else:
+                    print "Invalid CSV format!"
+            fileName.close()
+         #Scoring sequence
+                
+        
+
