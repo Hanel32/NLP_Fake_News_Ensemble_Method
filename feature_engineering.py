@@ -265,6 +265,7 @@ def hand_features(headline, body):
         #
         #TODO:
         #  Utilize the maxent classifier and perceptron both in order to generate weights.
+        #  See if accuracy improves if not just classification is included, but the document score.
         curr       = 0
         words      = {}
         weights    = []
