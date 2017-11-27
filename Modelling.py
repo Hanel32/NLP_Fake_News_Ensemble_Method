@@ -16,6 +16,7 @@ class Model():
         self.body_weights = []
         self.data_words   = []
         self.data_headers = []
+        self.features     = []
         self.get_head(headfile)
         self.get_body(bodyfile)
         self.get_data(datafile)
@@ -33,7 +34,7 @@ class Model():
         '''
         
     #Grabs all data to be processed.
-    def get_data(datafile):
+    def get_data(self, datafile):
         with open(datafile) as fileName:
             for row in reader.iterrows():
                 reader = pd.read_csv(fileName).fillna(value = "")
@@ -44,7 +45,7 @@ class Model():
             fileName.close()
     
     #Fills a dictionary of learned weights for body data
-    def get_body(bodyfile):
+    def get_body(self, bodyfile):
         curr = 0
         with open(bodyfile) as fileName:
             for row in reader.iterrows():
@@ -58,7 +59,7 @@ class Model():
             fileName.close()
         
     #Fills a dictionary of learned weights for headline data
-    def get_head(headfile):
+    def get_head(self, headfile):
         curr = 0
         with open(headfile) as fileName:
             for row in reader.iterrows():
@@ -70,11 +71,27 @@ class Model():
                     self.head_weights.append(weight)
                     curr += 1
             fileName.close()
-                
+    
+    def save_features(self):
+        with open("feature_data.txt", 'w') as datafile:
+            for feature in self.features:
+                datafile.writerow(feature)
+        datafile.close()
+        
 #End current work by Carson on Model class
 
-def generate_features(h,b):
+#Begin work on generate_features calling function
+def do_work(datafile, headfile, bodyfile):
+    model = Model(datafile, headfile, bodyfile)
+    
+    for doc in range(len(model.data_words)):
+        model.features.append(generate_features(model.data_headers[doc], 
+                                                model.data_body[doc]))
+    model.save_features()
+    
+#End current work by Carson on the model module
 
+def generate_features(h,b):
     X_overlap  = gen_or_load_feats(Jaccard_Similarity, h, b)
     X_polarity = gen_or_load_feats(polarity_features, h, b)
     X_hand     = gen_or_load_feats(hand_features, h, b)
@@ -82,13 +99,13 @@ def generate_features(h,b):
     X_NER      = gen_or_load_feats(named_entity_feature, h, b)
     
     #Currently being worked on by Carson:
-    X_unaries  = gen_or_load_feats(unaries, h, b)
-    X_bigrams  = gen_or_load_feats(bigrams, h, b)
-    X_trigrams = gen_or_load_feats(trigrams, h, b)
-    X_percept  = gen_or_load_feats(score, h, b)
+    X_unaries  = gen_or_load_feats(unaries, h, b)  #format = [word0_freq, word1_freq..., wordN_freq]
+    #TODO: X_bigrams  = gen_or_load_feats(bigrams, h, b)  #format = [word0_freq, word1_freq..., wordN_freq]
+    #TODO: X_trigrams = gen_or_load_feats(trigrams, h, b) #format = [word0_freq, word1_freq..., wordN_freq]
+    X_percept  = gen_or_load_feats(score, h, b)    #format = [perceptron_weight, classification]
     #Above is current work
     
-    X          =X_hand+ X_polarity+ X_overlap+X_vader+X_NER
+    X          = X_hand+ X_polarity+ X_overlap+X_vader+X_NER
     #X = np.concatenate(X,axis=0)
     print(X)
     return X
