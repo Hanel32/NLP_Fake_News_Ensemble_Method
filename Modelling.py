@@ -10,16 +10,27 @@ from feature_engineering import Jaccard_Similarity
 #Author: Carson Hanel
 class Model():
     def __init__(self, datafile, headfile, bodyfile):
-        self.data_words   = {}
         self.body_words   = {}
         self.head_words   = {}
-        self.data_headers = []
         self.head_weights = []
         self.body_weights = []
+        self.data_words   = []
+        self.data_headers = []
         self.get_head(headfile)
         self.get_body(bodyfile)
         self.get_data(datafile)
-        self.build_bow()
+        '''
+        Explanation of functions/data:
+            - body_words is a dictionary of all words in the body corpus
+            - head_words is a dictionary of all words in the headline corpus
+            - body_weights is a list of weights of the words for pseudo perceptron
+            - head_weights is a list of weights of the words for pseudo perceptron
+            - data_words   is the body contents of every file
+            - data_headers is the head contents of every file
+            - get_head(filename) gets header data for perceptron
+            - get_body(filename) gets body   data for perceptron
+            - get_data(filename) gets data for feature engineering
+        '''
         
     #Grabs all data to be processed.
     def get_data(datafile):
@@ -61,6 +72,11 @@ class Model():
             fileName.close()
             
     def build_bow():
+        for item in self.data_words:
+            item = item.split()
+            for word in item:
+                if word not in 
+                
         
 def generate_features(h,b):
 
@@ -95,3 +111,4 @@ np.save("My_features",all_features)
 file=open("My_features.txt","w")
 file.write(str(all_features))
 file.close()
+
