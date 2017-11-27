@@ -1,5 +1,5 @@
 #################################################################
-##  Script Info: It extracts the news from TheGuardian API 
+##  Script Info: It cleans the news and write it to the csv 
 ##  Author: Mohammed Habibllah Baig 
 ##  Date : 11/22/2017
 #################################################################
