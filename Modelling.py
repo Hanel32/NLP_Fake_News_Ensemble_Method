@@ -10,12 +10,16 @@ from feature_engineering import Jaccard_Similarity
 #Author: Carson Hanel
 class Model():
     def __init__(self, datafile, headfile, bodyfile):
-        self.data_words   = self.get_data(datafile)
-        self.body_words   = self.get_body(bodyfile)
-        self.head_words   = self.get_head(headfile)
+        self.data_words   = {}
+        self.body_words   = {}
+        self.head_words   = {}
         self.data_headers = []
         self.head_weights = []
         self.body_weights = []
+        self.get_head(headfile)
+        self.get_body(bodyfile)
+        self.get_data(datafile)
+        self.build_bow()
         
     #Grabs all data to be processed.
     def get_data(datafile):
@@ -30,21 +34,34 @@ class Model():
     
     #Fills a dictionary of learned weights for body data
     def get_body(bodyfile):
+        curr = 0
         with open(bodyfile) as fileName:
             for row in reader.iterrows():
                 reader = pd.read_csv(fileName).fillna(value = "")
                 word   = row['word']
                 weight = row['weight']
-                if word not in words.keys():
-                    words[word]   = curr
-                    weights[curr] = weight
-                else:
-                    print "Invalid CSV format!"
+                if word not in self.body_words.keys():
+                    self.body_words[word]   = curr
+                    self.body_weights.append(weight)
+                    curr += 1
             fileName.close()
         
     #Fills a dictionary of learned weights for headline data
     def get_head(headfile):
-
+        curr = 0
+        with open(headfile) as fileName:
+            for row in reader.iterrows():
+                reader = pd.read_csv(fileName).fillna(value = "")
+                word   = row['word']
+                weight = row['weight']
+                if word not in self.head_words.keys():
+                    self.head_words[word]   = curr
+                    self.head_weights.append(weight)
+                    curr += 1
+            fileName.close()
+            
+    def build_bow():
+        
 def generate_features(h,b):
 
     X_overlap  = gen_or_load_feats(Jaccard_Similarity, h, b)
