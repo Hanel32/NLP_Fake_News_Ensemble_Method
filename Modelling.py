@@ -70,14 +70,9 @@ class Model():
                     self.head_weights.append(weight)
                     curr += 1
             fileName.close()
-            
-    def build_bow():
-        for item in self.data_words:
-            item = item.split()
-            for word in item:
-                if word not in 
                 
-        
+#End current work by Carson on Model class
+
 def generate_features(h,b):
 
     X_overlap  = gen_or_load_feats(Jaccard_Similarity, h, b)
