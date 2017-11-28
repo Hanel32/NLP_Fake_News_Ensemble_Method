@@ -39,7 +39,7 @@ Attribution:
     - Bag of words feature generation
     - Program flow design/integration of neural network
     
-  - Habibu Baig
+  - Habib Baig
     - Generation and cleaning of Guardian and Fake data
     - Preprocessing the data lemmatization, removing Stop Words
     - feature_engineering.py except score/unaries
