@@ -258,36 +258,40 @@ def hand_features(headline, body):
 
         #Pseudo perceptron classifier
     #author: Carson Hanel
-    def score(headline, body, weights, words):
-        # Utilizes learned scores from a logistic regression perceptron run on the corpus.
-        # The idea is to make the learning quicker by doing learning separately, and simply
-        # the learned weights rather than learning and then scoring.
-        #
-        #TODO:
-        #  Utilize the maxent classifier and perceptron both in order to generate weights.
-        #  See if accuracy improves if not just classification is included, but the document score.
-        weight  = 0
-        feature = [] 
-        
-        #Scoring sequence
-        for w in set(body):
-           w = w.lower()
-           if w in words:
-               weight += float(weights[int(words[w])])
-        weight = 1 / (1 + np.exp(-(weight))) 
-        feature.append(weight)             
-        if weight > 0:
-            feature.append("1")
-        else:
-            feature.append("0")
-        return feature
+def score(headline, body, weights, words):
+    # Utilizes learned scores from a logistic regression perceptron run on the corpus.
+    # The idea is to make the learning quicker by doing learning separately, and simply
+    # the learned weights rather than learning and then scoring.
+    #
+    #TODO:
+    #  Utilize the maxent classifier and perceptron both in order to generate weights.
+    #  See if accuracy improves if not just classification is included, but the document score.
+    weight  = 0
+    feature = []    
+    #Scoring sequence
+    for w in set(body):
+        w = w.lower()
+        if w in words:
+            weight += float(weights[int(words[w])])
+    weight = 1 / (1 + np.exp(-(weight))) 
+    feature.append(weight)             
+    if weight > 0:
+        feature.append("1")
+    else:
+        feature.append("0")
+    return feature
                  
-    def unaries(headline, body):
-         # Parses the current document, and finds the frequencies of unaries in the bag of words.
-         #
-         #TODO:
-         #  Important note: unless the BoW and weights are generated within Modelling.py, this will be very slow.
-         #                  For a better design, I'll be moving the building of the BoW and the weight gathering 
-         #                  from the CSV into the other file. This way, we're not loading 130k words/weights into
-         #                  the RAM for every file to be scored; it'll be able to be passed as a parameter.
-               
+def unaries(body, words):
+    # Parses the current document, and finds the frequencies of unaries in the bag of words.
+    #
+    #TODO:
+    #  Important note: unless the BoW and weights are generated within Modelling.py, this will be very slow.
+    #                  For a better design, I'll be moving the building of the BoW and the weight gathering 
+    #                  from the CSV into the other file. This way, we're not loading 130k words/weights into
+    #                  the RAM for every file to be scored; it'll be able to be passed as a parameter.
+    feature = np.zeros(len(words.keys()))
+    body    = body.split()
+    for word in body:
+        if word in words:
+            feature[int(words[word])] += 1
+    return feature
