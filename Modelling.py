@@ -1,9 +1,6 @@
 import pandas as pd
-from collections import Counter
-import re
 import numpy as np
-from sklearn.utils import shuffle
-from feature_engineering import refuting_features, polarity_features, hand_features, gen_or_load_feats,sentiment_feature,named_entity_feature
+from feature_engineering import polarity_features, hand_features, gen_or_load_feats,sentiment_feature,named_entity_feature
 from feature_engineering import Jaccard_Similarity
 from feature_engineering import score, unaries
 
@@ -37,8 +34,8 @@ class Model():
     #Grabs all data to be processed.
     def get_data(self, datafile):
         with open(datafile) as fileName:
+            reader = pd.read_csv(fileName).fillna(value = "")
             for row in reader.iterrows():
-                reader = pd.read_csv(fileName).fillna(value = "")
                 head   = row['headline']
                 body   = row['body']
                 self.data_words.append(body)
@@ -49,8 +46,8 @@ class Model():
     def get_body(self, bodyfile):
         curr = 0
         with open(bodyfile) as fileName:
+            reader = pd.read_csv(fileName).fillna(value = "")
             for row in reader.iterrows():
-                reader = pd.read_csv(fileName).fillna(value = "")
                 word   = row['word']
                 weight = row['weight']
                 if word not in self.body_words.keys():
@@ -63,8 +60,8 @@ class Model():
     def get_head(self, headfile):
         curr = 0
         with open(headfile) as fileName:
+            reader = pd.read_csv(fileName).fillna(value = "")
             for row in reader.iterrows():
-                reader = pd.read_csv(fileName).fillna(value = "")
                 word   = row['word']
                 weight = row['weight']
                 if word not in self.head_words.keys():
