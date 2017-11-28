@@ -40,3 +40,4 @@ Attribution:
     - Generation and cleaning of Guardian and Fake data
     - Modelling.py except Model class and score/unaries
     - feature_engineering.py except score/unaries
+    - Theory of GridBoost
