@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.utils import shuffle
 from feature_engineering import refuting_features, polarity_features, hand_features, gen_or_load_feats,sentiment_feature,named_entity_feature
 from feature_engineering import Jaccard_Similarity
+from feature_engineering import score, unaries
 
 #Model class wrapper
 #Author: Carson Hanel
@@ -85,13 +86,16 @@ def do_work(datafile, headfile, bodyfile):
     model = Model(datafile, headfile, bodyfile)
     
     for doc in range(len(model.data_words)):
-        model.features.append(generate_features(model.data_headers[doc], 
-                                                model.data_body[doc]))
+        model.features.append(generate_features(model, doc))
     model.save_features()
     
 #End current work by Carson on the model module
 
-def generate_features(h,b):
+def generate_features(model, doc):
+    h = model.data_headers[doc]
+    b = model.data_body[doc]
+    
+    
     X_overlap  = gen_or_load_feats(Jaccard_Similarity, h, b)
     X_polarity = gen_or_load_feats(polarity_features, h, b)
     X_hand     = gen_or_load_feats(hand_features, h, b)
@@ -99,13 +103,15 @@ def generate_features(h,b):
     X_NER      = gen_or_load_feats(named_entity_feature, h, b)
     
     #Currently being worked on by Carson:
-    X_unaries  = gen_or_load_feats(unaries, h, b)  #format = [word0_freq, word1_freq..., wordN_freq]
-    #TODO: X_bigrams  = gen_or_load_feats(bigrams, h, b)  #format = [word0_freq, word1_freq..., wordN_freq]
-    #TODO: X_trigrams = gen_or_load_feats(trigrams, h, b) #format = [word0_freq, word1_freq..., wordN_freq]
-    X_percept  = gen_or_load_feats(score, h, b)    #format = [perceptron_weight, classification]
+    X_unaries  = gen_or_load_feats(unaries, b, model.body_words) 
+    #X_bigrams  = gen_or_load_feats(bigrams, b, model.body_words) 
+    #X_trigrams = gen_or_load_feats(trigrams,b, model.body_words)
+    X_body     = gen_or_load_feats(score, h, b, model.body_weights, model.body_words)  
+    X_head     = gen_or_load_feats(score, h, b, model.head_weights, model.head_words)
     #Above is current work
     
     X          = X_hand+ X_polarity+ X_overlap+X_vader+X_NER
+    X         += X_unaries + X_body + X_head
     #X = np.concatenate(X,axis=0)
     print(X)
     return X
@@ -119,4 +125,3 @@ np.save("My_features",all_features)
 file=open("My_features.txt","w")
 file.write(str(all_features))
 file.close()
-
