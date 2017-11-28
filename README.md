@@ -15,8 +15,13 @@ Pipeline:
     - Both classifiers share similar accurracy over headline/body data.
     - All learned data is put into CSV databases. As an example, please see the folders in the repository.
   - Build a feature model
+    - Modelling.py
+    - In the class Model, extracts all learned data from the perceptron/maxent, and builds appropriate structures.
   - Within the model, generate features
+    - Modelling.py
+    - In generate_features(), generates all features for a given document; it is an iterative process.
   - Run the generated features through a linear classifier.
+    - Currently, we are utilizing GradientBoost, though we may implement our own linear classifier.
 
 Note: an aspect of the pipeline is that a classifier is being pre-run on the headline and body data.
       This is because if we were to learn the weights while generating features, the algorithm would
