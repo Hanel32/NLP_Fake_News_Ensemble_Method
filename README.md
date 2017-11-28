@@ -38,6 +38,7 @@ Attribution:
     - Pseudo-perceptron/maxent feature generation
     - Bag of words feature generation
     - Program flow design/integration of neural network
+    - Design of neural network data generation and handling
     
   - Habib Baig
     - Generation and cleaning of Guardian and Fake data
