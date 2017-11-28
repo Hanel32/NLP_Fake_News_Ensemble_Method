@@ -1,6 +1,4 @@
 import nltk
-nltk.download('vader_lexicon')
-
 import os
 import re
 import nltk
@@ -258,9 +256,9 @@ def hand_features(headline, body):
     print("length:", len(X))
     return X
 
-    #Pseudo perceptron classifier
+        #Pseudo perceptron classifier
     #author: Carson Hanel
-    def score(headline, body):
+    def score(headline, body, weights, words):
         # Utilizes learned scores from a logistic regression perceptron run on the corpus.
         # The idea is to make the learning quicker by doing learning separately, and simply
         # the learned weights rather than learning and then scoring.
@@ -268,35 +266,23 @@ def hand_features(headline, body):
         #TODO:
         #  Utilize the maxent classifier and perceptron both in order to generate weights.
         #  See if accuracy improves if not just classification is included, but the document score.
-        curr       = 0
-        words      = {}
-        weights    = []
-        doc_weight = 0
-        #Weight extracting sequence
-        with open("Word_Data0.csv") as fileName:
-            for row in reader.iterrows():
-                reader = pd.read_csv(fileName).fillna(value = "")
-                word   = row['word']
-                weight = row['weight']
-                if word not in words.keys():
-                    words[word]   = curr
-                    weights[curr] = weight
-                else:
-                    print "Invalid CSV format!"
-            fileName.close()
-         #Scoring sequence
-         for w in set(body):
-            w = w.lower()
-            if w in words:
-                doc_weight += float(weights[int(words[w])])
-         doc_weight = 1 / (1 + np.exp(-(doc_weight))               
-         if weight > 0:
-             return 1
-         else:
-             return 0
-         return 0
+        weight  = 0
+        feature = [] 
+        
+        #Scoring sequence
+        for w in set(body):
+           w = w.lower()
+           if w in words:
+               weight += float(weights[int(words[w])])
+        weight = 1 / (1 + np.exp(-(weight))) 
+        feature.append(weight)             
+        if weight > 0:
+            feature.append("1")
+        else:
+            feature.append("0")
+        return feature
                  
-     def unaries(headline, body):
+    def unaries(headline, body):
          # Parses the current document, and finds the frequencies of unaries in the bag of words.
          #
          #TODO:
@@ -304,8 +290,4 @@ def hand_features(headline, body):
          #                  For a better design, I'll be moving the building of the BoW and the weight gathering 
          #                  from the CSV into the other file. This way, we're not loading 130k words/weights into
          #                  the RAM for every file to be scored; it'll be able to be passed as a parameter.
-                           
-                          
-                    
-        
-
+               
