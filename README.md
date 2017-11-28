@@ -34,6 +34,7 @@ Attribution:
     - Model class
     - Pseudo-perceptron/maxent feature generation
     - Bag of words feature generation
+    - Program flow design/integration of neural network
     
   - Habibu Baig
     - Generation and cleaning of Guardian and Fake data
