@@ -5,7 +5,7 @@ A naive approach to classifying fake news. The purpose for this assignment is si
 Pipeline:
   - Gather data
   - Clean data
-  - Learn perceptron/maximum entropic weights
+  - Learn perceptron/maximum entropic weights (Current 94 percent accuracy on body, 78 percent on headline)
   - Build a feature model
   - Within the model, generate features
   - Run the generated features through a linear classifier.
