@@ -4,8 +4,16 @@ A naive approach to classifying fake news. The purpose for this assignment is si
 
 Pipeline:
   - Gather data
+    - Extract_Data_TheGuardian.py
+    - Also extracts from Kaggle Fake News challenge repository
   - Clean data
+    - CleaningData_TheGuardian.py
+    - Creates the proper CSV file format database
   - Learn perceptron/maximum entropic weights (Current 94 percent accuracy on body, 78 percent on headline)
+    - MaxEnt.py     - see parent repository for hyperparameters
+    - perceptron.py - see parent repository for hyperparamteres
+    - Both classifiers share similar accurracy over headline/body data.
+    - All learned data is put into CSV databases. As an example, please see the folders in the repository.
   - Build a feature model
   - Within the model, generate features
   - Run the generated features through a linear classifier.
