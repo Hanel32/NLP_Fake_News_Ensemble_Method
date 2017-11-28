@@ -26,3 +26,16 @@ Pipeline:
 Note: an aspect of the pipeline is that a classifier is being pre-run on the headline and body data.
       This is because if we were to learn the weights while generating features, the algorithm would
       take more than an hour to fully complete. This is a design choice to favor expedience.
+      
+Attribution:
+  - Carson Hanel
+    - Perceptron.py
+    - MaxEnt.py
+    - Model class
+    - Pseudo-perceptron/maxent feature generation
+    - Bag of words feature generation
+    
+  - Habibu Baig
+    - Generation and cleaning of Guardian and Fake data
+    - Modelling.py except Model class and score/unaries
+    - feature_engineering.py except score/unaries
