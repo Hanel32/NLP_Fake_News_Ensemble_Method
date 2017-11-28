@@ -9,6 +9,9 @@ Pipeline:
   - Clean data
     - CleaningData_TheGuardian.py
     - Creates the proper CSV file format database
+   - Preprocesisng the Data
+    - It invlves lemmatization, cleaning stop words
+    - Merging the Fake Data and TheGuardian Data into one csv with an additional fakesness column
   - Learn perceptron/maximum entropic weights (Current 94 percent accuracy on body, 78 percent on headline)
     - MaxEnt.py     - see parent repository for hyperparameters
     - perceptron.py - see parent repository for hyperparamteres
@@ -38,6 +41,7 @@ Attribution:
     
   - Habibu Baig
     - Generation and cleaning of Guardian and Fake data
-    - Modelling.py except Model class and score/unaries
+    - Preprocessing the data lemmatization, removing Stop Words
     - feature_engineering.py except score/unaries
+    - Modelling.py except Model class and score/unaries
     - Theory of GridBoost
