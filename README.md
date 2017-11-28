@@ -8,10 +8,11 @@ Pipeline:
     - Also extracts from Kaggle Fake News challenge repository
   - Clean data
     - CleaningData_TheGuardian.py
-    - Creates the proper CSV file format database
+    - Creates the proper CSV file format database in pandas DataFrame
+    - Filter out only relevant news articles i.e. US News, World News, Politics and Business
    - Preprocesisng the Data
-    - It invlves lemmatization, cleaning stop words
-    - Merging the Fake Data and TheGuardian Data into one csv with an additional fakesness column
+     It involves lemmatization, cleaning stop words
+     Merging the Fake Data and TheGuardian Data into one csv with an additional fakesness column
   - Learn perceptron/maximum entropic weights (Current 94 percent accuracy on body, 78 percent on headline)
     - MaxEnt.py     - see parent repository for hyperparameters
     - perceptron.py - see parent repository for hyperparamteres
