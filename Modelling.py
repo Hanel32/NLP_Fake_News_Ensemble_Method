@@ -1,12 +1,10 @@
 import sys
+import string
 import pandas as pd
 import numpy as np
 from feature_engineering import polarity_features, hand_features, gen_or_load_feats,sentiment_feature,named_entity_feature
 from feature_engineering import Jaccard_Similarity
 from feature_engineering import score
-
-reload(sys)  
-sys.setdefaultencoding('utf-8')
 
 #Model class wrapper
 #Author: Carson Hanel
@@ -43,9 +41,11 @@ class Model():
             reader = pd.read_csv(fileName).fillna(value = " ")
             for index, row in reader.iterrows():
                 head     = row['headline']
+                head     = ''.join(x for x in head if x in string.printable)
                 body     = row['body']
+                body     = ''.join(x for x in body if x in string.printable)
                 features = generate_features(self, head, body)
-                self.feat_stream.write(str(features))
+                self.feat_stream.write(str(features) + "\n")
                 if num % 100 == 0:
                     print "Datafile: " + str(num) + " processed!"
                 num += 1
@@ -96,8 +96,8 @@ def generate_features(model, h, b):
     #X_unaries  = gen_or_load_feats(unaries, b, model.body_words) 
     #X_bigrams  = gen_or_load_feats(bigrams, b, model.body_words) 
     #X_trigrams = gen_or_load_feats(trigrams,b, model.body_words)
-    X_body     = score(h, b, model.body_weights, model.body_words)  
-    X_head     = score(h, b, model.head_weights, model.head_words)
+    X_body     = score(b, model.body_weights, model.body_words)  
+    X_head     = score(h, model.head_weights, model.head_words)
     #X_franken  = score(h, b, model.head_weights, model.body_words)
     #Above is current work
     
@@ -108,14 +108,3 @@ def generate_features(model, h, b):
 
 #Idea: Datafile, headfile, bodyfile
 model = Model(sys.argv[1], sys.argv[2], sys.argv[3])
-'''
-all_features=[]    
-for index, row in df.iterrows():
-    features=generate_features(row['headline'],row['body'])
-    all_features.append(features)
-    
-np.save("My_features",all_features)
-file=open("My_features.txt","w")
-file.write(str(all_features))
-file.close()
-'''
