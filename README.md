@@ -22,7 +22,9 @@ Pipeline:
     - In the class Model, extracts all learned data from the perceptron/maxent, and builds appropriate structures.
   - Within the model, generate features
     - Modelling.py
+    - feature_engineering.py
     - In generate_features(), generates all features for a given document; it is an iterative process.
+    - To see an example of the features being generated, please see folder set_features and feature_extraction.py
   - Run the generated features through a linear classifier.
     - Currently, we are utilizing GradientBoost, though we may implement our own linear classifier.
 
@@ -44,5 +46,5 @@ Attribution:
     - Generation and cleaning of Guardian and Fake data
     - Preprocessing the data lemmatization, removing Stop Words
     - feature_engineering.py except score/unaries
-    - Modelling.py except Model class and score/unaries
+    - Modelling.py generate_features()
     - Theory of GridBoost
