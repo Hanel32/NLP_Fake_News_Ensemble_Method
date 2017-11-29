@@ -55,8 +55,11 @@ def Jaccard_Similarity(headline, body):
     clean_body = clean(body)
     clean_headline = get_tokenized_lemmas(clean_headline)
     clean_body = get_tokenized_lemmas(clean_body)
-    features = [
-        len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
+    if float(len(set(clean_headline).union(clean_body))) == 0.:
+        features = [0.0]
+    else:
+        features = [
+                len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
     X.append(features)
     return features
 
@@ -253,12 +256,11 @@ def hand_features(headline, body):
              + binary_co_occurence_stops(headline, body)
              + count_grams(headline, body))
 
-    print("length:", len(X))
     return X
 
-        #Pseudo perceptron classifier
-    #author: Carson Hanel
-def score(headline, body, weights, words):
+#Pseudo perceptron classifier
+#author: Carson Hanel
+def score(body, weights, words):
     # Utilizes learned scores from a logistic regression perceptron run on the corpus.
     # The idea is to make the learning quicker by doing learning separately, and simply
     # the learned weights rather than learning and then scoring.
@@ -266,19 +268,21 @@ def score(headline, body, weights, words):
     #TODO:
     #  Utilize the maxent classifier and perceptron both in order to generate weights.
     #  See if accuracy improves if not just classification is included, but the document score.
-    weight  = 0
-    feature = []    
-    #Scoring sequence
+    feature = []
+    body    = body.split()
+    weight  = 0.
+    
     for w in set(body):
-        w = w.lower()
         if w in words:
-            weight += float(weights[int(words[w])])
-    weight = 1 / (1 + np.exp(-(weight))) 
-    feature.append(weight)             
-    if weight > 0:
-        feature.append("1")
+            weight = weight + float(weights[int(words[w])])
+
+    weight = 1 / (1 + np.exp(-weight))
+    feature.append(weight)
+    if weight > .5:
+        feature.append(0)
     else:
-        feature.append("0")
+        feature.append(1)
+    
     return feature
                  
 def unaries(body, words):
@@ -295,3 +299,6 @@ def unaries(body, words):
         if word in words:
             feature[int(words[word])] += 1
     return feature
+         
+             
+    
