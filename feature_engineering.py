@@ -1,185 +1,187 @@
+################################################################################################
+##  Script Info: Extarcts features from headline and Body  
+##  Author: Mohammed Habibllah Baig 
+##  Date : 11/22/2017
+################################################################################################
 import os
 import re
 import nltk
 import numpy as np
 from sklearn import feature_extraction
 from tqdm import tqdm
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from gensim import models
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import normalize
 
-
+from nltk import word_tokenize, pos_tag, ne_chunk, sent_tokenize
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from nltk.stem import PorterStemmer
+    
 _wnl = nltk.WordNetLemmatizer()
 
-
-def normalize_word(w):
+def Lemmatization(w):
     return _wnl.lemmatize(w).lower()
 
 
-def get_tokenized_lemmas(s):
-    return [normalize_word(t) for t in nltk.word_tokenize(s)]
-
+def Tokenization(s):
+    return [Lemmatization(t) for t in nltk.word_tokenize(s)]
 
 def clean(s):
     # Cleans a string: Lowercasing, trimming, removing non-alphanumeric
-
     return " ".join(re.findall(r'\w+', s, flags=re.UNICODE)).lower()
-
-
+    
 def remove_stopwords(l):
     # Removes stopwords from a list of tokens
     return [w for w in l if w not in feature_extraction.text.ENGLISH_STOP_WORDS]
 
 
-def gen_or_load_feats(feat_fn, headlines, bodies, feature_file):
-    if not os.path.isfile(feature_file):
-        feats = feat_fn(headlines, bodies)
-        np.save(feature_file, feats)
+def ExtractFeatures(feat_fn, headline, body):
+    feats = feat_fn(headline, body)
+    return feats
 
-    return np.load(feature_file)
-
-
-
-
-def word_overlap_features(headlines, bodies):
+def Jaccard_Similarity(headline, body):
+    """ It calculates the degree of overlap between Headline and Body of news article"""
     X = []
-    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
-        clean_headline = clean(headline)
-        clean_body = clean(body)
-        clean_headline = get_tokenized_lemmas(clean_headline)
-        clean_body = get_tokenized_lemmas(clean_body)
-        features = [
-            len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
-        X.append(features)
-    return X
+    Tokenized_headline = Tokenization(headline)
+    Tokenized_body = Tokenization(body)
+    features = [
+        len(set(Tokenized_headline).intersection(Tokenized_body)) / float(len(set(Tokenized_headline).union(Tokenized_body)))]
+    X.append(features)
+    return features
+    
+"""It calculates the polarity scores of headline and body using
+    Vader(Valence Aware Dictionary and Sentiment Reasoner) sentiment analyzer."""
+def sentiment_feature(headline,body):
+    sent = SentimentIntensityAnalyzer()
+    features = []
+    headVader = sent.polarity_scores(headline)
+    bodyVader = sent.polarity_scores(body)
+    features.append(abs(headVader['pos']-bodyVader['pos']))
+    features.append(abs(headVader['neg']-bodyVader['neg']))
+    return features
+    
+def named_entity_feature(headline,body):
+    """ Retrieves a list of Named Entities from the Headline and Body.
+    Returns a list containing the cosine similarity between the counts of the named entities """
+    stemmer = PorterStemmer()
+    #Extract the Parts of speech Tags
+    def Extract_POS_tags(text):
+        return pos_tag(word_tokenize(text))
 
+    def filter_pos(named_tags, tag):
+        return " ".join([stemmer.stem(name[0]) for name in named_tags if name[1].startswith(tag)])
 
-def refuting_features(headlines, bodies):
-    _refuting_words = [
-        'fake',
-        'fraud',
-        'hoax',
-        'false',
-        'deny', 'denies',
-        # 'refute',
-        'not',
-        'despite',
-        'nope',
-        'doubt', 'doubts',
-        'bogus',
-        'debunk',
-        'pranks',
-        'retract'
+    named_cosine = []
+    tags = ["NN"]
+    
+    cosine_simi = []
+    head = Extract_POS_tags(headline)
+    body = Extract_POS_tags(body[:255])
+
+    for tag in tags:
+        head_f = filter_pos(head, tag)
+        body_f = filter_pos(body, tag)
+
+        if head_f and body_f:
+            vect = TfidfVectorizer(min_df=1)
+            tfidf = vect.fit_transform([head_f,body_f])
+            cosine = (tfidf * tfidf.T).todense().tolist()
+            if len(cosine) == 2:
+                cosine_simi.append(cosine[1][0])
+            else:
+                cosine_simi.append(0)
+        else:
+            cosine_simi.append(0)
+    return cosine_simi
+
+"""It indicates the polarity of headline and body towards refuting words like ‘fraud’, ‘hoax’, ‘debunks’, ‘denies’."""
+def polarity_feature(headline, body):
+    _refuting_words = [ 'fake','fraud','hoax','false','deny', 'denies','not','despite','nope','doubt', 
+    'doubts','bogus','debunk','pranks','retract'
     ]
-    X = []
-    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
-        clean_headline = clean(headline)
-        clean_headline = get_tokenized_lemmas(clean_headline)
-        features = [1 if word in clean_headline else 0 for word in _refuting_words]
-        X.append(features)
-    return X
 
-
-def polarity_features(headlines, bodies):
-    _refuting_words = [
-        'fake',
-        'fraud',
-        'hoax',
-        'false',
-        'deny', 'denies',
-        'not',
-        'despite',
-        'nope',
-        'doubt', 'doubts',
-        'bogus',
-        'debunk',
-        'pranks',
-        'retract'
-    ]
-
-    def calculate_polarity(text):
-        tokens = get_tokenized_lemmas(text)
+    def check_polarity(text):
+        tokens = Tokenization(text)
         return sum([t in _refuting_words for t in tokens]) % 2
     X = []
-    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
-        clean_headline = clean(headline)
-        clean_body = clean(body)
-        features = []
-        features.append(calculate_polarity(clean_headline))
-        features.append(calculate_polarity(clean_body))
-        X.append(features)
-    return np.array(X)
+    features = []
+    features.append(check_polarity(clean(headline)))
+    features.append(check_polarity(clean(body)))
+    X.append(features)
+    return features
 
-
-def ngrams(input, n):
-    input = input.split(' ')
-    output = []
-    for i in range(len(input) - n + 1):
-        output.append(input[i:i + n])
-    return output
-
-
-def chargrams(input, n):
-    output = []
-    for i in range(len(input) - n + 1):
-        output.append(input[i:i + n])
-    return output
-
-
-def append_chargrams(features, text_headline, text_body, size):
-    grams = [' '.join(x) for x in chargrams(" ".join(remove_stopwords(text_headline.split())), size)]
-    grams_hits = 0
-    grams_early_hits = 0
-    grams_first_hits = 0
-    for gram in grams:
-        if gram in text_body:
-            grams_hits += 1
-        if gram in text_body[:255]:
-            grams_early_hits += 1
-        if gram in text_body[:100]:
-            grams_first_hits += 1
-    features.append(grams_hits)
-    features.append(grams_early_hits)
-    features.append(grams_first_hits)
+def count_chargrams(features, text_headline, text_body, size):
+    def chargrams(input, n):
+        output = []
+        for i in range(len(input) - n + 1):
+            output.append(input[i:i + n])
+        return output
+    
+    headline_words = [' '.join(x) for x in chargrams(" ".join(remove_stopwords(text_headline.split())), size)]
+    match_count = 0
+    match_early_count = 0
+    match_first_count = 0
+    for word in headline_words:
+        if word in text_body:
+            match_count += 1
+        if word in text_body[:255]:
+            match_early_count += 1
+        if word in text_body[:100]:
+            match_first_count += 1
+    features.append(match_count)
+    features.append(match_early_count)
+    features.append(match_first_count)
     return features
 
 
-def append_ngrams(features, text_headline, text_body, size):
-    grams = [' '.join(x) for x in ngrams(text_headline, size)]
-    grams_hits = 0
-    grams_early_hits = 0
-    for gram in grams:
-        if gram in text_body:
-            grams_hits += 1
-        if gram in text_body[:255]:
-            grams_early_hits += 1
-    features.append(grams_hits)
-    features.append(grams_early_hits)
+def count_ngrams(features, text_headline, text_body, size):
+    def ngrams(input, n):
+        input = input.split(' ')
+        output = []
+        for i in range(len(input) - n + 1):
+            output.append(input[i:i + n])
+        return output
+    
+    headline_words = [' '.join(x) for x in ngrams(text_headline, size)]
+    match_count = 0
+    match_early_count = 0
+    for word in headline_words:
+        if word in text_body:
+            match_count += 1
+        if word in text_body[:255]:
+            match_early_count += 1
+    features.append(match_count)
+    features.append(match_early_count)
     return features
 
+"""
+ it’s the counts of various chargrams and n-grams that are occurring in the headline and body."""
+def Misc_features(headline, body):
 
-def hand_features(headlines, bodies):
-
-    def binary_co_occurence(headline, body):
+    def count_matching_tokens(headline, body):
         # Count how many times a token in the title
         # appears in the body text.
-        bin_count = 0
-        bin_count_early = 0
+        count = 0
+        count_early = 0
         for headline_token in clean(headline).split(" "):
             if headline_token in clean(body):
-                bin_count += 1
+                count += 1
             if headline_token in clean(body)[:255]:
-                bin_count_early += 1
-        return [bin_count, bin_count_early]
+                count_early += 1
+        return [count, count_early]
 
-    def binary_co_occurence_stops(headline, body):
+    def count_matching_tokens_stops(headline, body):
         # Count how many times a token in the title
         # appears in the body text. Stopwords in the title
         # are ignored.
-        bin_count = 0
-        bin_count_early = 0
+        count = 0
+        count_early = 0
         for headline_token in remove_stopwords(clean(headline).split(" ")):
             if headline_token in clean(body):
-                bin_count += 1
-                bin_count_early += 1
-        return [bin_count, bin_count_early]
+                count += 1
+                count_early += 1
+        return [count, count_early]
 
     def count_grams(headline, body):
         # Count how many times an n-gram of the title
@@ -188,25 +190,24 @@ def hand_features(headlines, bodies):
         clean_body = clean(body)
         clean_headline = clean(headline)
         features = []
-        features = append_chargrams(features, clean_headline, clean_body, 2)
-        features = append_chargrams(features, clean_headline, clean_body, 8)
-        features = append_chargrams(features, clean_headline, clean_body, 4)
-        features = append_chargrams(features, clean_headline, clean_body, 16)
-        features = append_ngrams(features, clean_headline, clean_body, 2)
-        features = append_ngrams(features, clean_headline, clean_body, 3)
-        features = append_ngrams(features, clean_headline, clean_body, 4)
-        features = append_ngrams(features, clean_headline, clean_body, 5)
-        features = append_ngrams(features, clean_headline, clean_body, 6)
+        features = count_chargrams(features, clean_headline, clean_body, 2)
+        features = count_chargrams(features, clean_headline, clean_body, 8)
+        features = count_chargrams(features, clean_headline, clean_body, 4)
+        features = count_chargrams(features, clean_headline, clean_body, 16)
+        features = count_ngrams(features, clean_headline, clean_body, 2)
+        features = count_ngrams(features, clean_headline, clean_body, 3)
+        features = count_ngrams(features, clean_headline, clean_body, 4)
+        features = count_ngrams(features, clean_headline, clean_body, 5)
+        features = count_ngrams(features, clean_headline, clean_body, 6)
         return features
 
-    X = []
-    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
-        X.append(binary_co_occurence(headline, body)
-                 + binary_co_occurence_stops(headline, body)
-                 + count_grams(headline, body))
+    X = (count_matching_tokens(headline, body)
+             + count_matching_tokens_stops(headline, body)
+             + count_grams(headline, body))
 
-
+    print("length:", len(X))
     return X
+
 
 #Pseudo perceptron classifier
 #author: Carson Hanel
