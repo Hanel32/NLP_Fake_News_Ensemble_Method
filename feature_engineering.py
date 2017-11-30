@@ -96,7 +96,7 @@ def named_entity_feature(headline,body):
     return cosine_simi
 
 """It indicates the polarity of headline and body towards refuting words like ‘fraud’, ‘hoax’, ‘debunks’, ‘denies’."""
-def polarity_feature(headline, body):
+def polarity_features(headline, body):
     _refuting_words = [ 'fake','fraud','hoax','false','deny', 'denies','not','despite','nope','doubt', 
     'doubts','bogus','debunk','pranks','retract'
     ]
