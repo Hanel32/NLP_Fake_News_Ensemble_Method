@@ -2,8 +2,8 @@ import sys
 import string
 import pandas as pd
 import numpy as np
-from feature_engineering import polarity_features, hand_features, gen_or_load_feats,sentiment_feature,named_entity_feature
-from feature_engineering import Jaccard_Similarity
+from feature_engineering import  polarity_features, Misc_features, ExtractFeatures
+from feature_engineering import Jaccard_Similarity, sentiment_feature, named_entity_feature
 from feature_engineering import score
 
 #Model class wrapper
@@ -87,11 +87,11 @@ class Model():
             
 #End current work by Carson on Model class
 def generate_features(model, h, b):
-    X_overlap  = gen_or_load_feats(Jaccard_Similarity, h, b)
-    X_polarity = gen_or_load_feats(polarity_features, h, b)
-    X_hand     = gen_or_load_feats(hand_features, h, b)
-    X_vader    = gen_or_load_feats(sentiment_feature, h, b)
-    X_NER      = gen_or_load_feats(named_entity_feature, h, b)
+    X_overlap  = ExtractFeatures(Jaccard_Similarity, h, b)
+    X_polarity = ExtractFeatures(polarity_features, h, b)
+    X_hand     = ExtractFeatures(Misc_features, h, b)
+    X_vader    = ExtractFeatures(sentiment_feature, h, b)
+    X_NER      = ExtractFeatures(named_entity_feature, h, b)
     #Currently being worked on by Carson:
     #X_unaries  = gen_or_load_feats(unaries, b, model.body_words) 
     #X_bigrams  = gen_or_load_feats(bigrams, b, model.body_words) 
