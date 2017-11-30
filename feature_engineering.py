@@ -1,23 +1,9 @@
-import nltk
 import os
 import re
 import nltk
 import numpy as np
 from sklearn import feature_extraction
 from tqdm import tqdm
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from os.path import basename
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from gensim import models
-from gensim.models.phrases import Phraser
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.preprocessing import normalize
-#from FeatureData import FeatureData, tokenize_text
-
-from nltk import word_tokenize, pos_tag, ne_chunk, sent_tokenize
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from nltk.chunk import tree2conlltags
-from nltk.stem import PorterStemmer
 
 
 _wnl = nltk.WordNetLemmatizer()
@@ -42,70 +28,30 @@ def remove_stopwords(l):
     return [w for w in l if w not in feature_extraction.text.ENGLISH_STOP_WORDS]
 
 
-def gen_or_load_feats(feat_fn, headline, body):
-    feats = feat_fn(headline, body)
-    return feats
+def gen_or_load_feats(feat_fn, headlines, bodies, feature_file):
+    if not os.path.isfile(feature_file):
+        feats = feat_fn(headlines, bodies)
+        np.save(feature_file, feats)
+
+    return np.load(feature_file)
 
 
 
 
-def Jaccard_Similarity(headline, body):
+def word_overlap_features(headlines, bodies):
     X = []
-    clean_headline = clean(headline)
-    clean_body = clean(body)
-    clean_headline = get_tokenized_lemmas(clean_headline)
-    clean_body = get_tokenized_lemmas(clean_body)
-    if float(len(set(clean_headline).union(clean_body))) == 0.:
-        features = [0.0]
-    else:
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        clean_headline = clean(headline)
+        clean_body = clean(body)
+        clean_headline = get_tokenized_lemmas(clean_headline)
+        clean_body = get_tokenized_lemmas(clean_body)
         features = [
-                len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
-    X.append(features)
-    return features
+            len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
+        X.append(features)
+    return X
 
-def sentiment_feature(headline,body):
-    sid = SentimentIntensityAnalyzer()
-    features = []
-    headVader = sid.polarity_scores(headline)
-    bodyVader = sid.polarity_scores(body)
-    features.append(abs(headVader['pos']-bodyVader['pos']))
-    features.append(abs(headVader['neg']-bodyVader['neg']))
-    return features
-    
-def named_entity_feature(headline,body):
-    """ Retrieves a list of Named Entities from the Headline and Body.
-    Returns a list containing the cosine similarity between the counts of the named entities """
-    stemmer = PorterStemmer()
-    def get_tags(text):
-        return pos_tag(word_tokenize(text))
 
-    def filter_pos(named_tags, tag):
-        return " ".join([stemmer.stem(name[0]) for name in named_tags if name[1].startswith(tag)])
-
-    named_cosine = []
-    tags = ["NN"]
-    
-    cosine_simi = []
-    head = get_tags(headline)
-    body = get_tags(body[:255])
-
-    for tag in tags:
-        head_f = filter_pos(head, tag)
-        body_f = filter_pos(body, tag)
-
-        if head_f and body_f:
-            vect = TfidfVectorizer(min_df=1)
-            tfidf = vect.fit_transform([head_f,body_f])
-            cosine = (tfidf * tfidf.T).todense().tolist()
-            if len(cosine) == 2:
-                cosine_simi.append(cosine[1][0])
-            else:
-                cosine_simi.append(0)
-        else:
-            cosine_simi.append(0)
-    return cosine_simi
-    
-def refuting_features(headline, body):
+def refuting_features(headlines, bodies):
     _refuting_words = [
         'fake',
         'fraud',
@@ -123,14 +69,15 @@ def refuting_features(headline, body):
         'retract'
     ]
     X = []
-    clean_headline = clean(headline)
-    clean_headline = get_tokenized_lemmas(clean_headline)
-    features = [1 if word in clean_headline else 0 for word in _refuting_words]
-    X.append(features)
-    return features
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        clean_headline = clean(headline)
+        clean_headline = get_tokenized_lemmas(clean_headline)
+        features = [1 if word in clean_headline else 0 for word in _refuting_words]
+        X.append(features)
+    return X
 
 
-def polarity_features(headline, body):
+def polarity_features(headlines, bodies):
     _refuting_words = [
         'fake',
         'fraud',
@@ -151,15 +98,15 @@ def polarity_features(headline, body):
         tokens = get_tokenized_lemmas(text)
         return sum([t in _refuting_words for t in tokens]) % 2
     X = []
-    clean_headline = clean(headline)
-    clean_body = clean(body)
-    features = []
-    features.append(calculate_polarity(clean_headline))
-    features.append(calculate_polarity(clean_body))
-    X.append(features)
-    return features
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        clean_headline = clean(headline)
+        clean_body = clean(body)
+        features = []
+        features.append(calculate_polarity(clean_headline))
+        features.append(calculate_polarity(clean_body))
+        X.append(features)
+    return np.array(X)
 
-    
 
 def ngrams(input, n):
     input = input.split(' ')
@@ -208,7 +155,7 @@ def append_ngrams(features, text_headline, text_body, size):
     return features
 
 
-def hand_features(headline, body):
+def hand_features(headlines, bodies):
 
     def binary_co_occurence(headline, body):
         # Count how many times a token in the title
@@ -252,9 +199,12 @@ def hand_features(headline, body):
         features = append_ngrams(features, clean_headline, clean_body, 6)
         return features
 
-    X = (binary_co_occurence(headline, body)
-             + binary_co_occurence_stops(headline, body)
-             + count_grams(headline, body))
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        X.append(binary_co_occurence(headline, body)
+                 + binary_co_occurence_stops(headline, body)
+                 + count_grams(headline, body))
+
 
     return X
 
