@@ -2,8 +2,8 @@ import sys
 import string
 import pandas as pd
 import numpy as np
-from feature_engineering import  polarity_features, Misc_features, ExtractFeatures
-from feature_engineering import Jaccard_Similarity, sentiment_feature, named_entity_feature
+from feature_engineering import polarity_features, ExtractFeatures ,sentiment_feature,named_entity_feature
+from feature_engineering import Jaccard_Similarity, Misc_features
 from feature_engineering import score
 
 #Model class wrapper
@@ -16,7 +16,7 @@ class Model():
         self.head_words   = {}
         self.head_weights = []
         self.body_weights = []
-        self.feat_stream  = open("generated_feats.txt", "w")
+        self.feat_stream  = open("generated_feats_HFS_full.txt", "w")
         self.id_stream    = open("known_identities.txt", "w")
         self.get_head(headfile)
         self.get_body(bodyfile)
@@ -44,7 +44,7 @@ class Model():
                 head     = ''.join(x for x in head if x in string.printable)
                 body     = row['body']
                 body     = ''.join(x for x in body if x in string.printable)
-                features = generate_features(self, head, body)
+                features = extract_features(self, head, body)
                 self.feat_stream.write(str(features) + "\n")
                 if num % 100 == 0:
                     print "Datafile: " + str(num) + " processed!"
