@@ -45,6 +45,8 @@ def Jaccard_Similarity(headline, body):
     X = []
     Tokenized_headline = Tokenization(headline)
     Tokenized_body = Tokenization(body)
+    if float(len(set(Tokenized_headline).union(Tokenized_body))) == 0:
+        return [0.]
     features = [
         len(set(Tokenized_headline).intersection(Tokenized_body)) / float(len(set(Tokenized_headline).union(Tokenized_body)))]
     X.append(features)
@@ -95,11 +97,10 @@ def named_entity_feature(headline,body):
             cosine_simi.append(0)
     return cosine_simi
 
-"""It indicates the polarity of headline and body towards refuting words like ‘fraud’, ‘hoax’, ‘debunks’, ‘denies’."""
+'''It indicates the polarity of headline and body data with sentiment'''
 def polarity_features(headline, body):
     _refuting_words = [ 'fake','fraud','hoax','false','deny', 'denies','not','despite','nope','doubt', 
-    'doubts','bogus','debunk','pranks','retract'
-    ]
+                        'doubts','bogus','debunk','pranks','retract']
 
     def check_polarity(text):
         tokens = Tokenization(text)
@@ -155,8 +156,8 @@ def count_ngrams(features, text_headline, text_body, size):
     features.append(match_early_count)
     return features
 
-"""
- it’s the counts of various chargrams and n-grams that are occurring in the headline and body."""
+
+'''The counts of various chargrams and n-grams that are occurring in the headline and body'''
 def Misc_features(headline, body):
 
     def count_matching_tokens(headline, body):
@@ -205,7 +206,6 @@ def Misc_features(headline, body):
              + count_matching_tokens_stops(headline, body)
              + count_grams(headline, body))
 
-    print("length:", len(X))
     return X
 
 
@@ -250,6 +250,7 @@ def unaries(body, words):
         if word in words:
             feature[int(words[word])] += 1
     return feature
-         
+
+
              
     
