@@ -1,0 +1,143 @@
+Dataset Design
+
+In order to provide a dataset that would most accurately represent the spirit of what we were trying to do, we sought out the most neutral
+sourcing of news with the highest reputation for nonpartisan journalistic integrity as a sort of neutral base of comparison. The intuition 
+was that essentially, news that is being faked should talk about topics that potentially are also talked about in sincere news, but has 
+some differences in the presentation, word usage, and events that are focused upon. Further, we wanted to apply a little more rigor to the 
+experiment. With so many different news outlets being tuned into by citizens of countries abroad, we knew that obviously if we chose two 
+separately spread out domains from either different temporal or topical areas that the datasets would be entirely orthogonal, so in order 
+to combat this we chose to fit our dataset of “real” news fit our dataset of “fake” news. In order to do this, we attained a dataset of 
+certifiably “fake” news from the area surrounding the 2016 election and centered our real news dataset around a month before and a month 
+after span of the fake news, so that there would be a higher chance of the same events being discussed. As well, we focused the domain on 
+business and political articles from the domains specifically for that purpose of having overlap. Luckily, when paired, the two datasets 
+provided a beautifully vivid picture of the political scene at the time; more truthful news was associated with Brexit around the time, 
+which was being covered a bit more candidly by American media outlets, like The Guardian. What was interesting was the focus on unprovable 
+things in the fake news dataset; conspiracies, FBI claims, and unsubstantiated claims or articles leading up to the election. Regardless, 
+while we realize that there are areas in our test domain that do not overlap, we’ve done due diligence with attempting to mold the dataset 
+a procure a set of data that would lead to interesting, non-biased conclusions based upon the comparison of linguistic features between 
+the two.
+
+Feature Intuition
+
+Initially, the idea was to train a singular perceptron to be able to be run on a set of features that were built and extracted from the 
+dataset, and we had some success with that, however we knew that the features themselves wouldn’t tell the entire store. As you could see,
+we utilized Jaccard Similarity to extract a metric of the overlap between words occurring in the headline and body to see if the narrative 
+fit how it was being advertised. To boost this, we applied Cosine-Similarity in order to add further insight into correlation of the 
+headline of articles with the first paragraph to see if some articles may begin truthfully, but have an overall fake body beyond that;
+this was essentially our metric of control. Next, we applied  Valence Aware Dictionary and Sentiment Reasoning in order to capture the 
+extremities of emotion from two polar opposites like “amazing” and “excruciating” to try and capture those articles wherein emotions
+were being played on by using more extreme emotional words rather than simple explanatory words. In an attempt to find correlations 
+between possible commonly mentioned figures, we implemented a form of Named Entity Recognition to try and extract mentions of political
+figures like “Hillary Clinton”, “Donald Trump”, or “Theresa May” which were the subjects of the U.S. Presidential election, and UK 
+Prime Minister during the Brexit movement. Finally, in order to try and wrap it up nicely and catch underlying correlations, we applied
+n-grams and char-grams with base 2 lengths (2, 4, 8, 16) in order to find non directly token linked correlations that potentially might
+not have been caught. With this approach, we were able to achieve approximately 81% accuracy utilizing the Gradient Boost classifier on
+the features, which was represented by a row of 57 generated weights representing the outcome from the feature extraction process of a 
+specific document. In order to increase this, we moved on to implementing a classifier to try and take advantage of the word 
+occurrences and topical content of the articles.
+
+Perceptron Design
+
+Our first classifier that we utilized was the perceptron. My thoughts were first to see if, in our dataset, we had a linear distinction
+between real and fake news in the dataset. In order to achieve this and test out the model, I utilized the perceptron implementation 
+from the second programming assignment, and modified it. Initially, when running the perceptron on a model of 2,000 IMDB movie reviews,
+it had an approximately 78% success rate at distinguishing positive versus negative documents, so we wanted to see how this matched up 
+against our dataset. In the fake and real news dataset, we were able to procure approx. 25,000 documents with equal representation of 
+fake and real news. To make the perceptron work with our dataset, I had to modify the entire test and train split sections to be able 
+to read in a CSV document, and implemented my own unique hash function that test split documents by when they’re seen rather than 
+clustering information in the file name. As well, I implemented a way for our team to archive the weights generated from the perceptron
+by word so that we could examine directly what words were being associated more heavily with a certain polarity, and derive further 
+insights than just the percentile of accuracy. After all of the tweaks, small fixing of imperfections in the perceptron classification
+module, and bug fixes, we were finally able to run the classifier on our dataset. Initially, the results we were able to achieve were 
+78% accuracy distinguishing between real and fake news solely based upon the headlines, and 96% accuracy based upon the body. This 
+immediately put up a red flag, and I went to looking at the dataset to see what could possibly be causing such a high correlation 
+simply based upon occurrence of words in the body. What I found was that there were tiny bits of bias sprinkled into the dataset. 
+The Guardian actually had included their name in a large number of their written articles, and as such their name because the highest 
+classifier of real news, which is something that is counterproductive to the goals of this project. As well, the fake news dataset had 
+singular characters that were messy, and noisy, but above all were incredibly common, and thus false indicators of fake news. To remedy
+these biases, we chose to remove the singular character words from the entire corpus, as well as the names of the news outlets that 
+were writing the articles so that name recognition wasn’t a factor, but genuine content. By doing this, we lowered the perceptron 
+accuracy to 92%, which meant that these biased features were responsible for the classification of 4% of the 25,000 news articles, or 
+rather around a thousand articles were classified correctly solely based upon their biased features. In order to test if we had found 
+the correlation that would boost our feature results, we continued on to apply the changes from the perceptron algorithm to the Maximum 
+Entropy model that was built in class, using stochastic gradient descent. As it stood, the perceptron algorithm took 30-38 minutes 
+usually in order to process the entire 25 thousand document dataset, which had approximately 150 thousand unique words.
+
+Maximum Entropy Model Design
+
+As luck would have it, the Maximum Entropy model that was created during assignment 2 was created utilizing stochastic gradient descent,
+which is a great way to speed up the empirical maximum entropy model which, instead of guessing, learns absolute representations of 
+feature weights in a corpus but takes ages to complete. In order to get the maxent model to the same workability as the perceptron 
+algorithm, the same changes were implemented as far as the handling of the test splits, acquisition of data, and output of results. 
+Unlike the perceptron algorithm, the maxent model took closer to an hour to run, and for negligible gain. It turned out that the maxent
+model actually improved accuracy maybe 1-2%, but not much more. This was a heavy indicator that, no matter how much we’d tried to 
+landscape our dataset, we still had a bit of orthogonality between the two domains which was unresolvable, essentially the textual 
+content of the articles in some cases was such that it wasn’t even an issue that “real” news talked about. Further, because the maxent 
+model, which builds a three dimensional heatmap of word weights through gradient descent, performed approximately as well as the linear
+perceptron algorithm, there was not an underlying polynomial relationship between the articles, and essentially would indicate that 
+the difference between real and fake news would simply be like night and day, which, de facto is not the case or else we wouldn’t be 
+experimenting with this data. However, no matter the bias, we were reaching a stronger correlation, no matter how negligible, from the
+maximum entropy model, and as such decided to utilize it in our final implementation of the neural network. The reason behind this 
+choice is that we essentially wanted to utilize self-made classifiers rather than relying on Tensorflow or other libraries; we wanted
+to know exactly what was going on under the hood, and be able to draw relatable correlations from the data. The final results of the
+maximum entropy model were around 92.6% accuracy on average on the body data, and 78.9% average on the headline data as separate 
+entities.
+
+Modelling Module
+
+The next step necessary to be taken after we had found the appropriate classifier to use and landscaped out features to derive meaningful
+aspects of the text was to fully integrate all of these different informational metrics into one classification. In order to do this, I
+created the Modelling.py framework which simulated the internal layers of the neural network. What I found was that, when running the 
+classifiers, the perceptron and maximum entropy classifier were taking up around 8 gigabytes of RAM to be run for 30 minutes to an hour
+range, which was rendering my computer useless for long swaths of time and forcing me to work on changes on my laptop rather than 
+actually being able to work on my accelerated rig. To counter this, I pre-trained the maximum entropy classifier on both the headline 
+and body data, and created two databases of word weights that corresponded to the two scored regions. Having the word weights on hand 
+rather than having to generate them over again allowed us to generate the features and run the classifiers in a much more expedient 
+time. Essentially, in Modelling.py, when the program is initialized, a Model object is created which reads in all of the data for the 
+words and their weights, and rebuilds the dictionary without having to go through the pain of training the classifier. After rebuilding
+the dictionaries, it calls its own internal function called “generate features”, which extracts the Jaccard similarity, VADER sentiment,
+Cosine similarity, Named Entity recognition, and N-gram features, and subsequently goes on to process four different pseudo-maxent 
+classifiers on each document. In order to minimize the RAM needed to do this, the only data saved in the RAM was the weights for the
+dictionaries. The second a document was parsed and extracted from, it was flushed from the RAM and the generated features were written 
+immediately to a CSV file and dumped from the RAM. Doing this brought the memory necessary to run the neural network from 8 gigabytes 
+for an hour for a singular maxent classifier, to around 30 minutes to extract all features and run four classifiers per document 
+utilizing only 300 MB of RAM, which provided an enormous boost to the time it took to process the data, and carry out experiments. 
+To further add rigor, we utilized the same 90-10 test split to train the entire neural network, and scored on the unseen 10 percent 
+of documents. Because they haven’t been formally named, the four maximum entropy classifiers that were working per document scored 
+headline data, body data, and finally, I introduced a new and unique feature called “Frankenstein” which utilized two maximum entropy 
+classifiers to run, and added approximately 1-1.5% accuracy from the baseline of 92% from the headline and body overlap. 
+
+Frankenstein Feature Intuition
+
+To try and extract as much information as possible, I had the idea of creating a feature called “Frankenstein” which utilized the 
+learned weights for words in the body to score the headline data, and conversely, utilized learned headline weights to score the body 
+content. The intuition behind this was that essentially, the headline could have incredibly valuable data that isn’t being factored 
+into the classification simply because it was being compared to other headlines, which have a very minimal amount of information in 
+them as compared to the body. My idea was that if the headline had some heavy indicator that wasn’t unveiled as an indicator by the 
+weights generated respective to other headlines, perhaps the headlines when scored with body data would be an even heavier indicator.
+Though it’s gimmicky, the reason for the name “Frankenstein” was simply because the head and body were being mixed up, and it was just
+after Halloween. Though gimmicky, it ended up being a stronger classifier, and successfully added 1-1.5% accuracy to our then-baseline.
+Though there is no scholarly proof that this should work, the fact that my intuition led to an increase in accuracy was exciting, and
+as such we decided to keep it in as a feature in the final run of tests.
+
+Outer Layer Classification
+
+Though we’d utilized logistic regression in order to derive weights for our headline and body features, we knew that the outputs from 
+the feature generation and classifiers would be numerical rather than logistic. As such, we decided to search for alternative methods 
+of classification, and decided to go with Gradient Boost, which Habib had found to have similar accuracy to the maximum entropy model. 
+In order to see how well our features distinguish real from fake news, we ran the Modelling.py module and scored our entire test set of 
+10% of documents, which was a corpus of approximately 2,500 articles of equal real and fake news. After loading in the dictionary of 
+weights per word, the feature generation created 57 individual feature weights, and the four classifiers added two features each; one
+feature being the calculated weight regularized by the sigmoid function, and the other was simply 0 or 1 depending on if the document
+was within the threshold of real or fake. Essentially, there were eight features added, and simply appended to the end of the 57 
+generated features. Now, if you’ll remember, the features themselves were able to accurately distinguish 81% of articles, and the 
+maximum entropy model on the headline and body was able to distinguish 92%. After applying Frankenstein, 92% rose to approximately 
+93%, and with the inclusion of features, we were able to reach a final accuracy of disambiguating real versus fake news in our corpus
+of 96.1% accuracy. Essentially, appending the eight generated feature weights to the end of the extracted feature set provided an 
+increase in accuracy of around 15%, which was incredibly satisfying. To note, the final classifier we ended up utilizing was the 
+Gradient Boost, and the way that the neural network was run was a bit like a marionette show. First, the maximum entropy classifier
+was trained, second, the Modelling.py feature extraction and pseudo-classifier module was run to be create a 90% training set for 
+the final Gradient Boost classifier, and then the 10% test set was scored based upon learned weights and features. Finally, the 10% 
+test set’s 57 built features as well as the 8 generated maximum entropy weights were run through the Gradient Boost classifier to 
+see exactly how well we had trained our model. In all, the process of running the entire neural network from start to finish with 
+training was approximately 2-2.5 hours on a corpus of 40,000 news articles.
