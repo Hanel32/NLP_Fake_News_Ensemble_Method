@@ -1,6 +1,6 @@
 ################################################################################################
 ##  Script Info: Extarcts features from headline and Body  
-##  Author: Mohammed Habibllah Baig 
+##  Authors: Mohammed Habibllah Baig, Carson Hanel
 ##  Date : 11/22/2017
 ################################################################################################
 import os
