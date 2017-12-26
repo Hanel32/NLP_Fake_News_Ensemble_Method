@@ -42,11 +42,6 @@ class Maxent:
     * The idea with word_freq is to store at 0 the positive occurences of 
     '''
     self.word_freq    = []
-    
-
-  #############################################################################
-  # TODO TODO TODO TODO TODO 
-  # Implement the Maxent classifier 
 
   def classify(self, words):
     """ TODO
@@ -129,7 +124,6 @@ class Maxent:
   
   def train(self, split, epsilon, eta, lambdaa):
       """
-      * TODO 
       * iterates through data examples
       https://www.kaggle.com/c/word2vec-nlp-tutorial/details/part-1-for-beginners-bag-of-words
       ^- bag of words optimization
@@ -157,16 +151,7 @@ class Maxent:
           if(len(words) > 0):
             self.addExample(example.klass, words, ex_doc, eta, lambdaa)
             ex_doc += 1
-      
-      #print 'Weights are now: '
-      #for item in self.weights:
-          #print item,
-      
-     
-  # END TODO (Modify code beyond here with caution)
-  #############################################################################
-  
-  
+ 
   def trainSplit(self, trainDir):
     split = self.TrainSplit()
     with open(trainDir) as fileName:
