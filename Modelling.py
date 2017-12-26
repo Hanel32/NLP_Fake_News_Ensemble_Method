@@ -1,3 +1,6 @@
+"""
+@author: Carson Hanel
+"""
 import sys
 import string
 import pandas as pd
@@ -7,7 +10,6 @@ from feature_engineering import Jaccard_Similarity, Misc_features
 from feature_engineering import score
 
 #Model class wrapper
-#Author: Carson Hanel
 class Model():
     def __init__(self, datafile, headfile, bodyfile):
         self.sourceEncoding = "iso-8859-1"
@@ -84,26 +86,19 @@ class Model():
                     curr += 1
             fileName.close()    
         print "All of body data gathered!"
-            
-#End current work by Carson on Model class
+        
 def generate_features(model, h, b):
     X_overlap  = ExtractFeatures(Jaccard_Similarity, h, b)
     X_polarity = ExtractFeatures(polarity_features, h, b)
     X_hand     = ExtractFeatures(Misc_features, h, b)
     X_vader    = ExtractFeatures(sentiment_feature, h, b)
     X_NER      = ExtractFeatures(named_entity_feature, h, b)
-    #Currently being worked on by Carson:
-    #X_unaries  = gen_or_load_feats(unaries, b, model.body_words) 
-    #X_bigrams  = gen_or_load_feats(bigrams, b, model.body_words) 
-    #X_trigrams = gen_or_load_feats(trigrams,b, model.body_words)
     X_body     = score(b, model.body_weights, model.body_words)  
     X_head     = score(h, model.head_weights, model.head_words)
-    #X_franken  = score(h, b, model.head_weights, model.body_words)
-    #Above is current work
+    X_franken  = score(h, b, model.head_weights, model.body_words)
     
     X          = X_hand + X_polarity + X_overlap+X_vader+X_NER
-    X         += X_body + X_head    # + X_franken
-    #X = np.concatenate(X,axis=0)
+    X         += X_body + X_head     + X_franken
     return X
 
 #Idea: Datafile, headfile, bodyfile
