@@ -17,7 +17,7 @@ makedirs(TEMP_DIR, exist_ok=True)
 ################## SETTING URL PARAMS #############################
 ###################################################################
 
-API_KEY = "97cd90e4-d141-460f-85fc-a45e89d90ecd"
+API_KEY = "REMOVED"
 API_ENDPOINT = 'http://content.guardianapis.com/search'
 API_params = {
     'from-date': "",
